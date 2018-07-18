@@ -1,42 +1,58 @@
 from wxpy import *
-from threading import Timer
+import threading
 import requests
-import re
-import threadpool
-import time
+import json,random
+import sys
 
 bot = Bot(console_qr=2,cache_path="botoo.pkl")
+
+temp_dict = []
 
 def get_content(urls):
     html = requests.get(url=urls)
     return html.json()
 
+def get_local_msg(filepath):
 
-def send_one_msg(name):
+    with open(filepath, 'r') as file:
+        loveword_dict = json.load(file)
+
+    dict_len = len(loveword_dict)
+    #随机数
+    index_num = random.randint(0, int(dict_len)-1)
+    print(temp_dict)
+    if len(temp_dict) != 0 and len(temp_dict) != len(loveword_dict):
+        for i in range(len(temp_dict)):
+            if index_num in temp_dict:
+                index_num = random.randint(0, int(dict_len)-1)
+            else:
+                temp_dict.append(index_num)
+                break
+    elif len(temp_dict) == len(loveword_dict):
+        temp_dict[:] = []
+    else:
+        temp_dict.append(index_num)
+    return loveword_dict[index_num]['content']
+
+
+def send_one_msg():
     try:
-        url = 'http://open.iciba.com/dsapi/'
-        content = get_content(url)
+        name = sys.argv[1]
+        filepath = './loveword.json'
+        content = get_local_msg(filepath)
+
         #你要发送的微信好友的昵称
         my_friend = bot.friends().search(name)[0]
-        my_friend.send(content['content'])
-        my_friend.send(content['note'])
-        my_friend.send(content['translation'])
+        my_friend.send(content)
+        if nowtime == settime:
+            t = threading.Timer(86400, send_one_msg)
+            t.start()
 
     except:
         my_friend = bot.friends().search('木头人')[0]
         my_friend.send(u"今天消息发送失败了")
 
-def send_many_msg(namelist):
-    # namelist = ['{微信昵称}','{微信昵称}']
-    pool = threadpool.ThreadPool(10)
-    requests = threadpool.makeRequests(send_one_msg, namelist)
-    [pool.putRequest(req) for req in requests]
-    pool.wait()
-    
-    t = Timer(1, send_many_msg(namelist))
-    t.start()
 
 if __name__ == "__main__":
-    send_many_msg(['土亢', '我是猫'])
-
+    send_one_msg()
 
