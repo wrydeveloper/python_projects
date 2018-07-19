@@ -3,10 +3,14 @@ import threading
 import requests
 import json,random
 import sys
+import datetime
+import time
 
 bot = Bot(console_qr=2,cache_path="botoo.pkl")
-
 temp_dict = []
+name = sys.argv[1]
+setHour = 22
+setMin = 30
 
 def get_content(urls):
     html = requests.get(url=urls)
@@ -20,7 +24,7 @@ def get_local_msg(filepath):
     dict_len = len(loveword_dict)
     #随机数
     index_num = random.randint(0, int(dict_len)-1)
-    print(temp_dict)
+
     if len(temp_dict) != 0 and len(temp_dict) != len(loveword_dict):
         for i in range(len(temp_dict)):
             if index_num in temp_dict:
@@ -37,16 +41,16 @@ def get_local_msg(filepath):
 
 def send_one_msg():
     try:
-        name = sys.argv[1]
+
         filepath = './loveword.json'
         content = get_local_msg(filepath)
 
         #你要发送的微信好友的昵称
         my_friend = bot.friends().search(name)[0]
         my_friend.send(content)
-        if nowtime == settime:
-            t = threading.Timer(86400, send_one_msg)
-            t.start()
+
+        t = threading.Timer(10, send_one_msg)
+        t.start()
 
     except:
         my_friend = bot.friends().search('木头人')[0]
@@ -54,5 +58,14 @@ def send_one_msg():
 
 
 if __name__ == "__main__":
-    send_one_msg()
+    while True:
+        while True:
+            nowdate = datetime.datetime.now()
+            if nowdate.hour == setHour and nowdate.minute == setMin:
+                break
+            time.sleep(20)
+        send_one_msg()
+        break
+
+
 
